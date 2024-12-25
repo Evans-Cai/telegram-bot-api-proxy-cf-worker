@@ -1,13 +1,18 @@
-var URL_PATH_REGEX = /^\/bot(?<bot_token>[^/]+)\/(?<api_method>[a-z]+)/i;
-
-var src_default = {
+const URL_PATH_REGEX = /^\/bot(?<bot_token>[^/]+)\/(?<api_method>[a-z]+)/i;
+const FILE_PATH_REGEX = /^\/file\/bot(?<bot_token>[^/]+)\/(?<api_method>.+)/i;
+const src_default = {
   async fetch(request) {
     const { pathname: path, search } = new URL(request.url);
-
     let matchResult;
     let apiUrl;
-
+    let isFile = false;
     try {
+      // 如果是文件下载请求
+      if (path.startsWith("/file/bot")) {
+        isFile = true;
+        matchResult = path.match(FILE_PATH_REGEX);
+      }
+      // 如果是API请求
       matchResult = path.match(URL_PATH_REGEX);
     } catch (e) {
       return new Response("Invalid URL", {
@@ -15,9 +20,13 @@ var src_default = {
         headers: { "content-type": "text/plain" }
       });
     }
-
     if (matchResult && matchResult.groups) {
       const { bot_token, api_method } = matchResult.groups;
+      // 如果是文件下载请求
+      if (isFile) {
+        apiUrl = "https://api.telegram.org/file/bot" + bot_token + "/" + api_method;
+      }
+      // 如果是API请求
       apiUrl = "https://api.telegram.org/bot" + bot_token + "/" + api_method + search;
     } else {
       return new Response("Invalid URL", {
@@ -25,14 +34,12 @@ var src_default = {
         headers: { "content-type": "text/plain" }
       });
     }
-
     if (request.method === "GET") {
       const response = await fetch(apiUrl, {
         method: "GET",
         headers: request.headers
       });
       const responseBody = await response.text();
-
       return new Response(responseBody, {
         status: response.status,
         statusText: response.statusText,
@@ -45,7 +52,6 @@ var src_default = {
         body: request.body
       });
       const responseBody = await response.text();
-      
       return new Response(responseBody, {
         status: response.status,
         statusText: response.statusText,
