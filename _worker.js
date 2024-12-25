@@ -11,9 +11,10 @@ const src_default = {
       if (path.startsWith("/file/bot")) {
         isFile = true;
         matchResult = path.match(FILE_PATH_REGEX);
+      } else {
+        // 如果是API请求
+        matchResult = path.match(URL_PATH_REGEX);
       }
-      // 如果是API请求
-      matchResult = path.match(URL_PATH_REGEX);
     } catch (e) {
       return new Response("Invalid URL", {
         status: 400,
@@ -26,9 +27,10 @@ const src_default = {
       if (isFile) {
         apiUrl = "https://api.telegram.org/file/bot" + bot_token + "/" + api_method;
         return await fetch(apiUrl, request);
+      } else {
+        // 如果是API请求
+        apiUrl = "https://api.telegram.org/bot" + bot_token + "/" + api_method + search;
       }
-      // 如果是API请求
-      apiUrl = "https://api.telegram.org/bot" + bot_token + "/" + api_method + search;
     } else {
       return new Response("Invalid URL", {
         status: 400,
