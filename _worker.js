@@ -25,6 +25,7 @@ const src_default = {
       // 如果是文件下载请求
       if (isFile) {
         apiUrl = "https://api.telegram.org/file/bot" + bot_token + "/" + api_method;
+        return await fetch(apiUrl, request);
       }
       // 如果是API请求
       apiUrl = "https://api.telegram.org/bot" + bot_token + "/" + api_method + search;
